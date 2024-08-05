@@ -16,14 +16,13 @@ import BarChart from './BarChart';
 import { SportsGymnastics } from '@mui/icons-material';
 import Facilities from './Facilities';
 
-
 const Dashboard = () => {
 	const theme = useTheme();
 	const isNonMobile = useMediaQuery('(min-width: 768px)');
 	const [exercises, setExercises] = useState([]);
 	const [responseWithImages, setResponseWithImages] = useState([]);
 	const [loading, setLoading] = useState(false);
-	const [resizeKey, setResizeKey] = useState(0); 
+	const [resizeKey, setResizeKey] = useState(0);
 	const [chartData, setChartData] = useState({
 		pieChartData: [],
 		barChartData: [],
@@ -63,15 +62,15 @@ const Dashboard = () => {
 		'Accroupi', 'Agachamentos', 'Beckenheben', 'Crunches HD', 'Dumbbell drag curls',
 		'Dumbbell rear delt row', 'Dřepy', 'Dumbbell wide bicep curls'
 	];
-	const getObjectFormattedData =(arr,typeKey)=>{
-		  const chartData = [];
-		const formattedData = arr.filter((each) => typeKey === 'equipment'?each.equipment.length !== 0:true).reduce((acc, current) => {
+	const getObjectFormattedData = (arr, typeKey) => {
+		const chartData = [];
+		const formattedData = arr.filter((each) => typeKey === 'equipment' ? each.equipment.length !== 0 : true).reduce((acc, current) => {
 			const value = typeKey === 'category' ? current?.category?.name : current.equipment[0]?.name;
 			if (value) {
 				acc[value] = (acc[value] || 0) + 1;
 			}
 			return acc;
-		}, {})
+		}, {});
 
 		Object.keys(formattedData).forEach((key) => {
 			chartData.push(typeKey === 'equipment'
@@ -80,7 +79,8 @@ const Dashboard = () => {
 			);
 		});
 		return chartData;
-	}
+	};
+
 	const uniqueByName = (array, key) => {
 		const seen = new Set();
 		return array.filter(item => {
@@ -108,19 +108,19 @@ const Dashboard = () => {
 				const recordsWithImages = allExercises
 					.filter((record) => record?.images.length !== 0 && record?.images[0]?.image.includes('.gif') && !excludedNames.includes(record.name));
 
-				//CARD DATA MANIPULATION
+				// CARD DATA MANIPULATION
 				const uniqueRecordsWithImages = uniqueByName(recordsWithImages, 'name');
 				setResponseWithImages(uniqueRecordsWithImages);
 
-			  //ChartData Manipulation
+				// Chart Data Manipulation
 				const pieChartData = getObjectFormattedData(allExercises, 'category');
 				const barChartData = getObjectFormattedData(allExercises, 'equipment');
 
 				setChartData({ pieChartData, barChartData });
 			} catch (error) {
-				
+				console.error('Error fetching data:', error);
 			} finally {
-				 setLoading(false);
+				setLoading(false);
 			}
 		};
 		fetchAllData();
@@ -128,12 +128,15 @@ const Dashboard = () => {
 
 	return (
 		<Box sx={{ background: theme.palette.customBackground.main }}>
-			<Box className='text-3xl font-semibold mb-3 px-4 py-6' 
-			sx={{ color:'#4B79A1',
-				background: theme.palette.customBackground.light
-				}}><SportsGymnastics sx={{fontSize:'35px'}} className='mr-3'/>{constants.featuredExercises}</Box>
-				{
-					!loading && 
+			<Box className='text-3xl font-semibold mb-3 px-4 py-6'
+				sx={{ color: '#4B79A1', background: theme.palette.customBackground.light }}>
+				<SportsGymnastics sx={{ fontSize: '35px' }} className='mr-3' />{constants.featuredExercises}
+			</Box>
+			{loading ? (
+				<Box className='text-center'>
+					<CircularProgress color="secondary" />
+				</Box>
+			) : (
 				<Grid container direction="row" className='flex' spacing={2}>
 					{responseWithImages.slice(0, 8).map((featured, i) => (
 						<Grid item xs={12} sm={6} md={3} lg={3} key={i}>
@@ -166,22 +169,42 @@ const Dashboard = () => {
 						</Grid>
 					))}
 				</Grid>
-				}
-			{loading && <Box className='text-center'><CircularProgress color="secondary"></CircularProgress></Box>}
-			<Box className='text-3xl font-semibold my-5 px-4 py-6' sx={{ color: '#4B79A1', background: theme.palette.customBackground.light }}><SportsGymnastics sx={{ fontSize: '35px' }} className='mr-3' />{constants.chartSectionTitle}</Box>
-			<Grid container direction='row' className='flex' spacing={2}>
-				<Grid item xs={12} sm={12} md={12} lg={6}>
-					<Paper sx={{height:'500px'}}>
-						<Piechart data={chartData.pieChartData} />
-					</Paper>
+			)}
+			<Box className='text-3xl font-semibold my-5 px-4 py-6'
+				sx={{ color: '#4B79A1', background: theme.palette.customBackground.light }}>
+				<SportsGymnastics sx={{ fontSize: '35px' }} className='mr-3' />{constants.chartSectionTitle}
+			</Box>
+			{loading ? (
+				<Box className='text-center'>
+					<CircularProgress color="secondary" />
+				</Box>
+			) : (
+				<Grid container direction='row' className='flex' spacing={2}>
+					<Grid item xs={12} sm={12} md={12} lg={6}>
+						<Paper sx={{ height: '500px' }}>
+							{chartData.pieChartData.length ? (
+								<Piechart data={chartData.pieChartData} />
+							) : (
+								<Box className='text-center'>
+									<CircularProgress color="secondary" />
+								</Box>
+							)}
+						</Paper>
+					</Grid>
+					<Grid item xs={12} sm={12} md={12} lg={6}>
+						<Paper sx={{ height: '500px' }}>
+							{chartData.barChartData.length ? (
+								<BarChart data={chartData.barChartData} keys={['exercises']} />
+							) : (
+								<Box className='text-center'>
+									<CircularProgress color="secondary" />
+								</Box>
+							)}
+						</Paper>
+					</Grid>
 				</Grid>
-				<Grid item xs={12} sm={12} md={12} lg={6}>
-					<Paper sx={{ height: '500px' }}>
-						<BarChart data={chartData.barChartData} keys={['exercises']} />
-					</Paper>
-				</Grid>
-			</Grid>
-			<Facilities/>
+			)}
+			<Facilities />
 		</Box>
 	);
 };

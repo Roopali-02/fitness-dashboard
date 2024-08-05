@@ -85,7 +85,7 @@ const Layout = ({ children }) => {
 								key={index} 
 								sx={{ paddingLeft: '0px !important', paddingRight: '0px !important' }}
               >
-								<Link to={option === 'Home'?'/':'/exercises'}>
+								<Link to='/'>
 								<ListItemButton>
 									<ListItemIcon
 										sx={{
